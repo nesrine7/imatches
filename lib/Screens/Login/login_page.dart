@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'auth.dart';
+import 'package:i_matches/Screens/Login/auth_member.dart';
+import 'auth_manager.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({ Key? key }) : super(key: key);
@@ -39,11 +40,9 @@ class _LoginPageState extends State<LoginPage> {
                   ]),
             ),
             body: const TabBarView(children: [
-              Login(),
-              Login(),
+              LoginPageManager(),
+              LoginPageMemeber(),
             ],
-            
-            
             ),
           ),
        );

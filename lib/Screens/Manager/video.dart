@@ -1,12 +1,25 @@
+
+
+
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'dart:async';
+import 'dart:io' as io;
 
  late VideoPlayerController _controller;
+late Future<VideoPlayerController> _futureController;
  bool isClicked = false;
 
  bool isVisible=true;
+getMatchVideoFromSF() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? match = prefs.getString('video');
+  return match;
+}
+
 
 
  class _playPauseOverlay extends StatefulWidget {
@@ -17,7 +30,10 @@ import 'dart:async';
  }
  
  class __playPauseOverlayState extends State<_playPauseOverlay> {
-  
+
+
+
+
    @override
    Widget build(BuildContext context) {
      return Stack(
@@ -81,6 +97,14 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
+
+  getMatchVideoFromSF() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? match = prefs.getString('video');
+    return match;
+  }
+
+
   @override
   void initState() {
     super.initState();

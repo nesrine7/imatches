@@ -1,10 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:i_matches/Screens/Manager/match_service.dart';
 import 'package:i_matches/Route/routes.dart'as route;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'model_manager.dart';
+
 
 class Matches extends StatefulWidget {
   const Matches({ Key? key }) : super(key: key);
@@ -13,101 +11,36 @@ class Matches extends StatefulWidget {
 }
 
 class _MatchesState extends State<Matches> {
-  String? nomMatch;
-  Future<List<Match>>? futureMatch;
-  List<Match> listMatch = [];
-  String url = "https://stats.isporit.com/api/matches";
-
-  getTokenFromSF() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    return token;
-  }
-
-  getClubFromSF() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? club = prefs.getString('clubid');
-    return club;
-  }
-
-  Future<List<String>> fetchManager() async {
-    String token = await getTokenFromSF();
-    String club = await getClubFromSF();
-    final response = await http.get(
-      Uri.parse('https://stats.isporit.com/api/matches/?clubId=$club'),
-      headers: {
-        'accept': 'application/json',
-        HttpHeaders.authorizationHeader: '$token',
-      },
-    );
-    if (response.statusCode == 200) {
-      List data = jsonDecode(response.body);
-      List<String> listMatch = [];
-      data.forEach((element) {
-        Map obj = element;
-        String title = obj['title'];
-        listMatch.add(title);
-      });
-      return listMatch;
-    }
-    else {
-      throw Exception("Fail to fetch data ");
-    }
-  }
-
-  Future<List<String>> fetchGame() async {
-    String token = await getTokenFromSF();
-    String club = await getClubFromSF();
-    final response = await http.get(
-      Uri.parse('https://stats.isporit.com/api/matches/?clubId=$club'),
-      headers: {
-        'accept': 'application/json',
-        HttpHeaders.authorizationHeader: '$token',
-      },
-    );
-    if (response.statusCode == 200) {
-      var Matchlist = User.fromJson(json.decode(response.body)).game?.matchId;
-      //List<String> dataMatch = List<String>.from(Matchlist);
-      print(Matchlist);
-      List data = jsonDecode(response.body);
-      List<String> listMatch = [];
-      data.forEach((element) {
-        Map obj = element;
-        String title = obj['title'];
-        listMatch.add(title);
-      });
-      return listMatch;
-    }
-    else {
-      throw Exception("Fail to fetch data ");
-    }
-  }
-
-
 
   @override
   void initState() {
     super.initState();
-    //futureMatch = fetchManager()   ;
   }
+
+  late List<String> listMatch;
+  void getStringListMatch() async {
+    var L= await MatchService().fetchManager();
+    listMatch = L;
+  }
+  late List<String> listScore;
+  void getStringListScore() async {
+    var L= await MatchService().fetchScore();
+    listScore = L;
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: fetchManager(),
+        future: MatchService().fetchManager(),
         builder:
             (BuildContext context,
             AsyncSnapshot<List<String>> projectSnap) {
           if (projectSnap.connectionState == ConnectionState.none ||
               !projectSnap.hasData) {
-            return const Text("NO DATA");
+            return const Text("You still have no matches yet");
           }
           return Scaffold(
-            appBar: AppBar(
-            ),
-            floatingActionButton: FloatingActionButton(onPressed: () { fetchGame(); },
-
-            ) ,
             body: GridView.builder(
                 itemCount: projectSnap.data!.length,
                 itemBuilder: (context, index) {
@@ -121,7 +54,10 @@ class _MatchesState extends State<Matches> {
                       elevation: 8,
                       child: InkWell(
                         onTap: (){
-                          Navigator.pushNamed(context, route.match );
+                         MatchService().getMatchId(projectSnap.data![index]);
+                          Navigator.pushNamed(context, route.match);
+                          MatchService().setMatchTitle(projectSnap.data![index]);
+
                          },
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -143,12 +79,7 @@ class _MatchesState extends State<Matches> {
                             color: Colors.black
                         ),
                         ),
-                          Text(
-                            '2021 Liga ',
-                            //style: GoogleFonts.oswald() ,
-                            textAlign: TextAlign.center,
 
-                          ),
                           Wrap(
                               children: [
                                 Image.asset(
@@ -156,9 +87,25 @@ class _MatchesState extends State<Matches> {
                                   width: 40,
                                   height: 40,
                                 ),
-                                Container(
-                                  margin: EdgeInsets.all(15),
-                                  child:  Text(' 2 - 0 '),
+                                FutureBuilder(
+                                  future:MatchService().fetchScore(),
+                                  builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.none ||
+                                        !snapshot.hasData) {
+                                      return const Text("not defined");
+                                    }
+                                    return
+                                    Container(
+                                      child : Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                    child : Text(
+                                    snapshot.data![index][0]+'-'+snapshot.data![index][1],
+                                    style: GoogleFonts.oswald() ,
+                                    textAlign: TextAlign.center,
+                                    )
+                                    )
+                                    );
+                                 },
                                 ),
                                 Image.asset(
                                   'assets/equipe1.png',
@@ -177,13 +124,13 @@ class _MatchesState extends State<Matches> {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   childAspectRatio: 130 / 200,
                                   crossAxisCount: 2,),
-            //drawer: const MonDrawer(),
-
             )
               );
         });
   }
 }
+
+
 
 
 

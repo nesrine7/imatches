@@ -10,14 +10,14 @@ import 'package:http/http.dart' as http;
 
 
 
-class Login extends StatefulWidget {
-  const Login({ Key? key }) : super(key: key);
+class LoginPageManager extends StatefulWidget {
+  const LoginPageManager({ Key? key }) : super(key: key);
 
   @override
-  _LoginState createState() => _LoginState();
+  _LoginPageManagerState createState() => _LoginPageManagerState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginPageManagerState extends State<LoginPageManager> {
 
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
@@ -60,26 +60,39 @@ class _LoginState extends State<Login> {
         "accept" : "application/json"},
         body: jsonEncode(body),
     );
+
     if (response.statusCode==200){
       var token = Manager.fromJson(json.decode(response.body)).token;
       var club = Manager.fromJson(json.decode(response.body)).user?.clubId;
       setToken(token!);
-      setClub(club!);
+      if(club == null){
+        SnackBar error = SnackBar(content: Text("Check again your informations"),behavior: SnackBarBehavior.floating,);
+        ScaffoldMessenger.of(context).showSnackBar(error);}
+        else {setClub(club);
       setState(() {
         _isLoading=false;
         Navigator.pushNamed(context, route.manager );
       });
       SnackBar sucess = SnackBar(
-          content: Text("Welcome Back "),
+        content: Text("Welcome Back "),
         behavior: SnackBarBehavior.floating,
       );
       ScaffoldMessenger.of(context).showSnackBar(sucess);
-    }
-    else {
-      SnackBar error = SnackBar(content: Text("Wrong Email or password"));
+      }
+        }
+    else if(response.statusCode==400) {
+      SnackBar error = SnackBar(content: Text("Bad Request. You need to verify your information "),behavior: SnackBarBehavior.floating,);
       ScaffoldMessenger.of(context).showSnackBar(error);
-
     }
+    else if(response.statusCode==500) {
+      SnackBar error = SnackBar(content: Text("Unexpected error, maybe try again later"),behavior: SnackBarBehavior.floating,);
+      ScaffoldMessenger.of(context).showSnackBar(error);
+    }
+    else if(response.statusCode==422) {
+      SnackBar error = SnackBar(content: Text("Wrong email or password"),behavior: SnackBarBehavior.floating,);
+      ScaffoldMessenger.of(context).showSnackBar(error);
+    }
+
   }
 
   @override
@@ -206,34 +219,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           backgroundColor: Colors.white,
           elevation: 0,
-          bottom: TabBar(
-              unselectedLabelColor: Colors.black,
-              indicatorSize: TabBarIndicatorSize.tab,
-              indicator: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Colors.purple, Colors.blue]),
-                  borderRadius: BorderRadius.circular(50),
-                  color: Colors.blueGrey
-              ),
-              tabs: [
-                Tab(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Text("Managers"),
-                  ),
-                ),
-                Tab(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Text("Members"),
-                  ),
-                ),
-              ]),
         ),
-        body: TabBarView(children: [
-          Login(),
-          Login(),
-        ]),
       ),
     );
 

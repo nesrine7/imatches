@@ -1,13 +1,8 @@
-
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:i_matches/Route/routes.dart'as route;
-import 'package:http/http.dart' as http;
 
-import 'model_manager.dart';
 
 
 
@@ -28,8 +23,6 @@ class _MyDrawerState extends State<MyDrawer> {
  void initsate(){
     super.initState();
  }
-
-
 
    checkLoginStatus() async {
      prefs = await SharedPreferences.getInstance();
@@ -54,12 +47,13 @@ class _MyDrawerState extends State<MyDrawer> {
                 image: DecorationImage(
                   image: AssetImage("assets/appbarbackground.jpg"),
                      fit: BoxFit.cover)
-              ),),
+              ),
+              ),
 
              ListTile(
-                title: Text('Profile'),
+                title: Text('My Team'),
                 leading: Icon(Icons.person),
-                onLongPress: (){},
+                onTap: (){Navigator.pushNamed(context, route.myTeam);},
                 ),
               ListTile(
                 title: Text('Logout'),
